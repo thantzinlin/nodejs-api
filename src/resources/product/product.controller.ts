@@ -18,7 +18,7 @@ class ProductController implements Controller {
             //  validationMiddleware(validate.create),
             this.create
         );
-        this.router.get(`${this.path}/getall`, this.getAll);
+        this.router.post(`${this.path}/getall`, this.getAll);
         this.router.put(`${this.path}/update`, this.update);
         this.router.delete(`${this.path}/delete`, this.delete);
         this.router.get(`${this.path}/getbyid`, this.getById);
@@ -35,7 +35,8 @@ class ProductController implements Controller {
             const resdata = await this.productService.create(data);
             res.status(201).json({ resdata });
         } catch (error) {
-            next(new HttpException(400, 'Cannot create Product'));
+            console.error('Create Product Error:', error); // Log the error for debugging purposes
+            next(new HttpException(500, 'Error while creating Product')); // Providing a more descriptive error message
         }
     };
 
@@ -45,11 +46,12 @@ class ProductController implements Controller {
         next: NextFunction
     ): Promise<Response | void> => {
         try {
-            const { ...data } = req.body;
+            const data = req.body;
             const resdata = await this.productService.update(data._id, data);
-            res.status(201).json({ resdata });
+            return res.status(200).json({ resdata });
         } catch (error) {
-            next(new HttpException(400, 'Cannot Update Product'));
+            console.error('Update Product Error:', error);
+            next(new HttpException(500, 'Error while updating Product'));
         }
     };
 
@@ -61,8 +63,9 @@ class ProductController implements Controller {
         try {
             const id = req.query.id as string;
             const resdata = await this.productService.delete(id);
-            res.status(201).json({ resdata });
+            return res.status(200).json();
         } catch (error) {
+            console.error('Delete Product Error:', error);
             next(new HttpException(400, 'Cannot Delete Product'));
         }
     };
@@ -73,11 +76,21 @@ class ProductController implements Controller {
         next: NextFunction
     ): Promise<Response | void> => {
         try {
-            const { id, name, price } = req.body;
-            const data = await this.productService.getAll();
-            res.status(201).json({ data });
+            const { page = 1, limit = 10, search } = req.body;
+            const data = await this.productService.getAllPaginated(
+                page,
+                limit,
+                search
+            );
+            const count = await this.productService.countDocuments();
+            return res.status(200).json({
+                data,
+                totalPages: Math.ceil(count / limit),
+                count,
+            });
         } catch (error) {
-            next(new HttpException(400, 'Cannot get Products'));
+            console.error('Get All Products Error:', error);
+            next(new HttpException(500, 'Error while retrieving Products'));
         }
     };
 
@@ -89,9 +102,10 @@ class ProductController implements Controller {
         try {
             const id = req.query.id as string;
             const data = await this.productService.getById(id);
-            res.status(201).json({ data });
+            return res.status(200).json({ data }); // Using 200 OK status for successful response
         } catch (error) {
-            next(new HttpException(400, 'Cannot get Products'));
+            console.error('Get Product by ID Error:', error); // Log the error for debugging purposes
+            next(new HttpException(500, 'Error while fetching Product by ID')); // Providing a more descriptive error message
         }
     };
 }

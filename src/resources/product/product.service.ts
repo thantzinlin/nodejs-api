@@ -50,13 +50,53 @@ class ProductService {
         }
     }
 
-    public async getAll(): Promise<Product[]> {
+    // public async getAllPaginated(
+    //     page: number,
+    //     limit: number
+    // ): Promise<Product[]> {
+    //     try {
+    //         const products = await this.product
+    //             .find()
+    //             .limit(limit * 1)
+    //             .skip((page - 1) * limit)
+    //             .sort({ createdAt: -1 });
+
+    //         return products;
+    //     } catch (error) {
+    //         throw new Error('Unable to retrieve products');
+    //     }
+    // }
+    public async getAllPaginated(
+        page: number,
+        limit: number,
+        search?: string
+    ): Promise<Product[]> {
         try {
-            const products = await this.product.find();
+            let query = {};
+            if (search) {
+                query = {
+                    $or: [
+                        { name: { $regex: search, $options: 'i' } },
+                        { description: { $regex: search, $options: 'i' } },
+                    ],
+                };
+            }
+
+            const products = await this.product
+                .find(query)
+                .limit(limit * 1)
+                .skip((page - 1) * limit)
+                .sort({ createdAt: -1 });
+
             return products;
         } catch (error) {
             throw new Error('Unable to retrieve products');
         }
+    }
+
+    public async countDocuments() {
+        const count = await this.product.countDocuments();
+        return count;
     }
 }
 

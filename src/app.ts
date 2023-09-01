@@ -34,8 +34,6 @@ class App {
     private initialiseControllers(controllers: Controller[]): void {
         controllers.forEach((controller: Controller) => {
             this.express.use('/api', controller.router);
-            
-              
         });
         // this.express.get('/api/endpoints', (_req, res) => {
         //     const endpoints = expressListEndpoints(.express);

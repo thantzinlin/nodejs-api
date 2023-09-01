@@ -46,6 +46,8 @@ class UserController implements Controller {
 
             res.status(201).json({ token });
         } catch (error: any) {
+            console.error('Error in /api/users/register:', error);
+
             next(new HttpException(400, error.message));
         }
     };
@@ -62,6 +64,8 @@ class UserController implements Controller {
 
             res.status(200).json({ token });
         } catch (error: any) {
+            console.error('Error in /api/users/login:', error);
+
             next(new HttpException(400, error.message));
         }
     };
